@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="utf-8" />
+	<title>Snake 1.0.0</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<!-- Сбрасываем стили по умолчанию в разных браузерах -->
+	<link rel="stylesheet" href="css/reset.min.css" />
+	<!-- Подключаем главный файл стилей -->
+	<link rel="stylesheet" href="css/main.min.css" />
+</head>
+<body>
+
+	<div class="top">
+		<h1 class="title">"Змейка" 1.0.0</h1>
+		<h2 class="slogan">Слоган: При нападении змея может раскрывать свой рот на 180 градусов</h2>
+		<ul class="facts">
+			<li class="facts__item dn js-hiddenFact">Змейка - компьютерная игра, возникшая в середине или в конце 1970-х</li>
+			<li class="facts__item dn js-hiddenFact">Первой игрой этого плана был игровой автомат Hustle, выпущенный фирмой Gremlin в 1977 году</li>
+			<li class="facts__item dn js-hiddenFact">Одна из первых реализаций (возможно, первая) на домашнем компьютере была сделана в 1979 году на компьютере TRS-80, автор F. Seger (Германия)</li>
+			<li class="facts__item dn js-hiddenFact">Вскоре после неё вышла версия для Commodore VIC-20, под названием Worms</li>
+			<li class="facts__item dn js-hiddenFact">Микрокомпьютерная версия игры Hustle была выпущена Milton Bradley для компьютера TI-99/4A в 1980 году</li>
+			<li class="facts__item dn js-hiddenFact">Версии игры существовали и на многих советских компьютерах, например — на Радио 86РК</li>
+			<li class="facts__item dn js-hiddenFact">Несмотря на довольно долгую историю, змейка до сих пор популярна</li>
+		</ul>
+		<div class="countBox dn js-scoreCount__box">
+			<div class="countBox__text">Набрано очков:</div>
+			<div class="countBox__count js-scoreCount__count"></div>
+		</div>
+	</div>
+
+	<form id="form" action="" class="form">
+		
+		<h2 class="form__title">Выберите уровень сложности:</h2>
+		<div class="form__wrap">
+			<label class="form__box" for="easy">
+				<div class="form__subtitle">Легкий (За фрукт 1 очко)</div>
+				<input id="easy" class="game__level" type="radio" value="150" name="level" />
+			</label>
+			<label class="form__box" for="intermediate">
+				<div class="form__subtitle">Средний (За фрукт 2 очка)</div>
+				<input id="intermediate" class="game__level" type="radio" value="90" name="level" checked="checked" />
+			</label>
+			<label class="form__box" for="difficult">
+				<div class="form__subtitle">Тяжёлый (За фрукт 4 очка)</div>
+				<input id="difficult" class="game__level" type="radio" value="40" name="level" />
+			</label>
+		</div>
+		<input class="btn js-init" type="button" value="Начать игру" />
+	</form>
+
+	<div class="info dn js-showBox">
+		<p class="info__text">Управляйте движением змейки с помощью стрелочек на клавиатуре</p>
+		<p class="info__text">Вызовите паузу, нажав на любую клавишу кроме стрелочек</p>
+	</div>
+
+	<form class="lostBox js-sendBox dn">
+
+		<input class="score js-score" type="hidden" value="" />
+		<div class="lostBox__wrap">
+			<p class="lostBox__text">Хвост змеи был откусан... Вы проиграли...</p>
+			<p class="lostBox__text">Набранное количество очков: <span class="lostBox__count js-record"></span></p>
+			<p class="lostBox__text">Введите Ваш ник:</p>
+		</div>
+		
+		<input class="lostBox__nickname js-nickName" type="text" placeholder="Ваш ник:" name="name" />
+		<input class="btn js-lostBox__send " type="button" value="Занести в таблицу рекордов" />
+		<input class="btn js-results__btn dn" type="button" value="Посмотреть таблицу рекордов" />
+		<input class="btn js-results__reload mt20 dn" type="button" value="Начать игру заново" />
+
+		<!-- <p class="lostBox__text dn">
+			Юзер: <span class="lostBox__count js-record"></span>
+			Очков: <span class="lostBox__count js-record"></span>
+		</p> -->
+
+		<div class="js-results__table results dn"></div>
+
+
+
+	</form>
+
+	<!-- Добавляем наш js-файл -->
+	<script src="js/snake.min.js"></script>
+</body>
+</html>
