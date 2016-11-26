@@ -1,35 +1,35 @@
-document.addEventListener('keydown', function(e) {
+// document.addEventListener('keydown', function(e) {
 
-	var theEvent = e || window.event;
-	var key = theEvent.keyCode || theEvent.which;
+// 	var theEvent = e || window.event;
+// 	var key = theEvent.keyCode || theEvent.which;
 
-	if (key == 123) {
-		theEvent.preventDefault();
-		return false; // Запрещаем f12
-	} else if (theEvent.ctrlKey && theEvent.shiftKey && theEvent.keyCode == 73) {
-		theEvent.preventDefault();
-		return false; // Prevent from ctrl+shift+i
-	} else if (theEvent.ctrlKey && theEvent.keyCode == 85) {
-		theEvent.preventDefault();
-		return false; // Запрещаем ctrl+u
-	}
+// 	if (key == 123) {
+// 		theEvent.preventDefault();
+// 		return false; // Запрещаем f12
+// 	} else if (theEvent.ctrlKey && theEvent.shiftKey && theEvent.keyCode == 73) {
+// 		theEvent.preventDefault();
+// 		return false; // Prevent from ctrl+shift+i
+// 	} else if (theEvent.ctrlKey && theEvent.keyCode == 85) {
+// 		theEvent.preventDefault();
+// 		return false; // Запрещаем ctrl+u
+// 	}
 
-});
+// });
 
-document.addEventListener('contextmenu', function(e) {
+// document.addEventListener('contextmenu', function(e) {
 
-	var theEvent = e || window.event;
-	var key = theEvent.keyCode || theEvent.which;
+// 	var theEvent = e || window.event;
+// 	var key = theEvent.keyCode || theEvent.which;
 
-	theEvent.preventDefault();
+// 	theEvent.preventDefault();
 
-});
+// });
 
 window.onload = function() {
 
-	function s(text) {
+	// function s(text) {
 		// console.log(text);
-	}
+	// }
 
 	var wasd = {l: '65', t: '87', r: '68', d: '83'};
 	var arrs = {l: '37', t: '38', r: '39', d: '40'};
@@ -414,6 +414,26 @@ window.onload = function() {
 		}, 0);
 
 		audio.play();
+
+	});
+
+	var toggleSoundBtn = document.querySelector('.js-toggleSound');
+
+	toggleSoundBtn.addEventListener( "click", function() {
+
+		function toggleSound() {
+
+			if ( audio.paused && audio.currentTime > 0 && !audio.ended ) {
+				toggleSoundBtn.innerHTML = "Выключить звук";
+				audio.play();
+			} else {
+				toggleSoundBtn.innerHTML = "Включить звук";
+				audio.pause();
+			}
+
+		}
+
+		toggleSound();
 
 	});
 

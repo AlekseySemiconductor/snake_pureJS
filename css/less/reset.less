@@ -1,0 +1,62 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+a {
+	outline: none !important; /* При нажатии на ссылку появляется точечная красная рамка. Убираем границу вокруг ссылок */
+}
+h1, h2, h3, h4, h5, h6 {
+	font-weight: normal; /* В хроме для заголовков шрифт по умолчанию стоит жирный, поэтому прописываем normal, чтобы сделать его нормальным */
+}
+input {
+	box-shadow: none; /* Убираем красную тень в полях ввода */
+}
+:focus {
+	outline: none; /* В хроме, опере и сафари при фокусе появляется голубая рамка - ее убираем */
+}
+::-ms-clear {
+	display: none; /* В ie10 при вводе текста в поле появляется крестик очистки - убираем его */
+}
+/* В некоторых браузерах текст пропадает не после получения фокуса, а после того, как начинают писать - исправляем это */
+:focus::-webkit-input-placeholder { color: transparent; }
+:focus::-moz-placeholder { color: transparent; }
+:focus::placeholder { color: transparent; }
