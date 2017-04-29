@@ -1,49 +1,26 @@
-// document.addEventListener('keydown', function(e) {
-
-// 	var theEvent = e || window.event;
-// 	var key = theEvent.keyCode || theEvent.which;
-
-// 	if (key == 123) {
-// 		theEvent.preventDefault();
-// 		return false; // Запрещаем f12
-// 	} else if (theEvent.ctrlKey && theEvent.shiftKey && theEvent.keyCode == 73) {
-// 		theEvent.preventDefault();
-// 		return false; // Prevent from ctrl+shift+i
-// 	} else if (theEvent.ctrlKey && theEvent.keyCode == 85) {
-// 		theEvent.preventDefault();
-// 		return false; // Запрещаем ctrl+u
-// 	}
-
-// });
-
-// document.addEventListener('contextmenu', function(e) {
-
-// 	var theEvent = e || window.event;
-// 	var key = theEvent.keyCode || theEvent.which;
-
-// 	theEvent.preventDefault();
-
-// });
-
 window.onload = function() {
 
-	// function s(text) {
-		// console.log(text);
-	// }
-
-	var wasd = {l: '65', t: '87', r: '68', d: '83'};
-	var arrs = {l: '37', t: '38', r: '39', d: '40'};
-	var food = 0; // сколько змейка съела фруктов (начальное значение 0) 
-	var level; // уровень сложности, если начальный, то за один фрукт дается 1 очко, если средний - 2 очка, а если тяжелый - 4 очка
-
-	var startPosition = [
+	var wasd = {
+			l: '65',
+			t: '87',
+			r: '68',
+			d: '83'
+		},
+		arrs = {
+			l: '37',
+			t: '38',
+			r: '39',
+			d: '40'
+		},
+		food = 0, // сколько змейка съела фруктов (начальное значение 0) 
+		level, // уровень сложности, если начальный, то за один фрукт дается 1 очко, если средний - 2 очка, а если тяжелый - 4 очка
+		startPosition = [
 		[1, 4], // первый элемент - голова
 		[1, 3],
 		[1, 2],
 		[1, 1]
-	];
-
-	var foodImage = 'bg_food';
+	],
+	foodImage = 'bg_food';
 
 	// МАТРИЦА НАЧАЛО ====================================================================================================================================================
 
@@ -56,26 +33,35 @@ window.onload = function() {
 	}
 
 	CreateMatrix.prototype.createTable = function() {
-		var that = this;
-		var table = document.createElement('div');
-		var form = document.body.querySelector('#form');
-		table.id = this.tableId;
+		
+		var that = this,
+			table = document.createElement('div'),
+			form = document.body.querySelector('#form');
+
+		table.id = this.tableId,
 		table.className = 'table';
+
 		document.body.insertBefore(table, form.nextElementSibling.nextElementSibling);
+		
 		for ( var i = 1; i <= this.maxCell; i++ ){
 			var item = document.createElement('div');
 			item.className = 'table__cell';
 			table.appendChild(item);
 		}
+
 		// задаем ширину таблицы
 		document.getElementById(that.tableId).style.width = document.getElementById(that.tableId).children[0].offsetWidth * that.col + 'px';
 		that.cell = document.getElementById(that.tableId).children;
+	
 	};
 
 	CreateMatrix.prototype.addFood = function() {
+		
 		this.foodImage = foodImage;
-		var that = this;
-		var randomCell = Math.random()*that.maxCell;
+		
+		var that = this,
+			randomCell = Math.random()*that.maxCell;
+
 		if ( that.cell[Math.floor(randomCell)].classList == 'table__cell' ) {
 			that.cell[Math.floor(randomCell)].classList.add(that.foodImage);
 		} else {
@@ -104,8 +90,6 @@ window.onload = function() {
 		this.mainRow = this.body[0][0];
 		this.mainCol = this.body[0][1];
 
-		// console.log(this.body);
-
 		this.bgColor = 'bg_yellow';
 
 		this.setInterval;
@@ -132,20 +116,24 @@ window.onload = function() {
 		this.setStartCell = function() {
 
 			for (var j=0; j<that.body.length; j++) {
-				var x = that.body[j][1]-1;
-				var y = (that.body[j][0]-1)*that.col;
-				var pos = x+y;
+
+				var x = that.body[j][1]-1,
+					y = (that.body[j][0]-1)*that.col,
+					pos = x+y;
+
 				that.cell[pos].classList.add(that.bgColor);
+			
 			}
-			var xHead = that.body[0][1]-1;
-			var yHead = (that.body[0][0]-1)*that.col;
-			var posHead = xHead+yHead;
+
+			var xHead = that.body[0][1]-1,
+				yHead = (that.body[0][0]-1)*that.col,
+				posHead = xHead+yHead;
+
 			that.cell[posHead].classList.add('head'); // выбираем квадратик с головой и даём ему класс
+		
 		};
 
 		this.setNextCell = function() {
-
-			// console.log(that.body);
 
 			that.xLast = that.body[that.body.length-1][1]-1; // -1 так как первый элемент массива это ноль; третий элемент покажет 4 квадратик, а мне нужен третий, поэтому минус 1
 			that.yLast = that.body[that.body.length-1][0]-1;
@@ -173,8 +161,6 @@ window.onload = function() {
 
 				var fact = document.body.getElementsByClassName('js-hiddenFact');
 
-				// console.log(fact);
-
 				if ( food >= 70 ) {
 					fact[6].classList.remove('dn');
 				} else if ( food >= 60 ) {
@@ -190,7 +176,6 @@ window.onload = function() {
 				} else if ( food >= 10 ) {
 					fact[0].classList.remove('dn');
 				}
-
 				
 
 				that.cell[that.posNext].classList.remove(that.foodImage); 
@@ -200,7 +185,6 @@ window.onload = function() {
 
 
 				var scorebox = document.getElementsByClassName('js-scoreCount__box')[0];
-				// console.log(scorebox.classList);
 
 				if ( scorebox.classList.contains('dn') ) {
 					scorebox.classList.remove('dn');
@@ -230,7 +214,6 @@ window.onload = function() {
 				document.getElementsByClassName('js-score')[0].value = food;
 				document.getElementsByClassName('js-sendBox')[0].classList.remove('dn');
 
-				// matrix1.classList.add('dn');
 				return;
 			}
 			
@@ -258,7 +241,6 @@ window.onload = function() {
 
 			this.reStart();
 
-			// that = undefined;
 		};
 
 		this.moveLeft = function() {
@@ -346,10 +328,7 @@ window.onload = function() {
 		};
 
 		document.addEventListener('keydown', function(e) {
-			// console.log(that);
-			// if ( that == undefined ) {
-			// 	return;
-			// }
+
 			clearInterval(that.setInterval);
 			if ( e.keyCode == that.keys.l ){
 				if (that.course == undefined) {
@@ -379,23 +358,18 @@ window.onload = function() {
 
 	var audio = new Audio('audio/Aleksey Semiconductor - Цыганочка.mp3');
 	
-
 	document.getElementsByClassName('js-init')[0].addEventListener( "click", function() {
 
 		document.querySelector('.form').classList.add('dn');
 		document.querySelector('.js-showBox').classList.remove('dn');
-		
-		// this.disabled = true;
 
 		if ( document.getElementsByClassName('bg_food').length > 0 ) {
-			// s('Еда уже есть');
+			// console.log('Еда уже есть');
 			return;
 		}
 
 		var speed = document.querySelector('.game__level:checked').value;
 		level = document.querySelector('.game__level:checked').id;
-
-		// console.log(level);
 
 		if (snake) {
 			// console.log(snake);
@@ -477,8 +451,6 @@ window.onload = function() {
  
 
 	document.getElementsByClassName('js-results__btn')[0].addEventListener( "click", function() {
-
-		// console.log(e.target);
 		
 		var xmlhttp = new XMLHttpRequest();
 
@@ -499,11 +471,9 @@ window.onload = function() {
 					// var results = '[' + xmlhttp.responseText + ']' ;
 
 
-					var results = xmlhttp.responseText;
-
-					var arrResult = results.split('-');
-
-					var score = [];
+					var results = xmlhttp.responseText,
+						arrResult = results.split('-'),
+						score = [];
 
 					for (var i = 0; i < arrResult.length; i++) {
 
@@ -511,8 +481,8 @@ window.onload = function() {
 						// а последнего, потому что имя может содержать пробелы, 
 						// затем вырезаем с этого индекса всё что идёт далее, это и есть число
 
-						var number = arrResult[i].slice(arrResult[i].lastIndexOf(' '));
-						var user = arrResult[i].slice(0, arrResult[i].lastIndexOf(' '));
+						var number = arrResult[i].slice(arrResult[i].lastIndexOf(' ')),
+							user = arrResult[i].slice(0, arrResult[i].lastIndexOf(' '));
 
 						number = +number;
 
@@ -523,11 +493,6 @@ window.onload = function() {
 					score.pop(); // почему-то последний элемент массива всегда пустой, его удаляем
 
 					// function compareNumeric(a, b) {
-
-					// 	if (b[1] < a[1]) return 1;
-					// 	if (b[1] > a[1]) return -1;
-					// 	return 0;
-					// }
 
 					function sortFunction(a, b) {
 						if (a[0][1] === b[0][1]) {
@@ -585,10 +550,7 @@ window.onload = function() {
 	});
 
 	document.getElementsByClassName('js-results__reload')[0].addEventListener( "click", function() {
-
 		location.reload();
-		
 	});
 	
-
 };
