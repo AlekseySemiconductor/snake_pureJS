@@ -33,12 +33,37 @@ body {
 	padding-bottom: 20px;
 }
 
+.lists {
+	position: relative;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: row;
+	-ms-flex-direction: row;
+	flex-direction: row;
+	-webkit-flex-wrap: wrap;
+	-ms-flex-wrap: wrap;
+	flex-wrap: wrap;
+	-webkit-justify-content: space-between;
+	-ms-flex-pack: justify;
+	justify-content: space-between;
+	-webkit-align-content: stretch;
+	-ms-flex-line-pack: stretch;
+	align-content: stretch;
+	-webkit-align-items: flex-start;
+	-ms-flex-align: start;
+	align-items: flex-start;
+	height: 0px;
+	padding: 0px 20px;
+}
+
 .facts {
-	position: absolute;
-	left: 100px;
-	top: 27%;
+	// position: absolute;
+	// left: 100px;
+	// top: 27%;
 	width: 350px;
-	text-align: left;
+	// height: 0px;
+	// text-align: left;
 }
 
 .facts__item {
@@ -50,10 +75,28 @@ body {
 	}
 }
 
+.countList {
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: column;
+	-ms-flex-direction: column;
+	flex-direction: column;
+	-webkit-flex-wrap: wrap;
+	-ms-flex-wrap: wrap;
+	flex-wrap: wrap;
+	-webkit-justify-content: flex-start;
+	-ms-flex-pack: start;
+	justify-content: flex-start;
+	-webkit-align-content: flex-end;
+	-ms-flex-line-pack: end;
+	align-content: flex-end;
+    -webkit-align-items: flex-end;
+    -ms-flex-align: end;
+    align-items: flex-end;
+}
+
 .countBox {
-	position: absolute;
-	right: 100px;
-	top: 50%;
 	display: -ms-flexbox;
 	display: -webkit-flex;
 	display: flex;
@@ -74,20 +117,26 @@ body {
 	align-items: center;
 }
 
-.countBox__text {
+.countBox__header {
 	font: 26px/1.2 arial, helvetica;
 	color: #000;
 }
 
 .countBox__count {
 	font: 26px/1.2 arial, helvetica;
-	color: #f00;
+	background-color: #ccc;
+	padding: 20px;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
 }
 
 .info {
 	position: relative;
 	text-align: center;
 	padding-bottom: 30px;
+	margin-bottom: 20px;
 }
 
 .info__text {
@@ -121,7 +170,7 @@ body {
 	align-items: baseline;
 }
 
-.form__box {
+.label {
 	margin-bottom: 10px;
 	margin-right: 20px;
 	display: -ms-flexbox;
@@ -146,6 +195,7 @@ body {
 
 .table {
 	position: relative;
+	z-index: 1;
 	display: block;
 	margin: 0px auto 30px;
 	font-size: 0px;
@@ -159,9 +209,6 @@ body {
 	height: 18px;
 	border: 1px solid #000;
 	background-color: #f00;
-	&:hover {
-		cursor: pointer;
-	}
 }
 
 .bg_red {
@@ -171,6 +218,14 @@ body {
 .bg_yellow {
 	background-color: #ff0;
 }
+
+
+
+.bg_green {
+	background-color: #0f0;
+}
+
+
 
 .bg_food {
 	position: relative;
@@ -184,7 +239,6 @@ body {
 		left: 50%;
 		background-color: #302013;
 		-webkit-transform: translate(-50%, 0%);
-		-ms-transform: translate(-50%, 0%);
 		transform: translate(-50%, 0%);
 		display: inline-block;
 		width: 10%;
@@ -199,20 +253,36 @@ body {
 		top: 60%;
 		left: 50%;
 		-webkit-transform: translate(-50%, -50%);
-		-ms-transform: translate(-50%, -50%);
 		transform: translate(-50%, -50%);
 		font-size: 0px;
 		border-radius: 50%;
 	}
+	&.head {
+		&:before {
+			content: normal;
+		}
+		&:after {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			-webkit-transform: translate(-50%, -50%);
+			transform: translate(-50%, -50%);
+			content: "";
+			display: inline-block;
+			width: 5px;
+			height: 5px;
+			border-radius: 50%;
+			background-color: #000;
+			font: 12px 'arial';
+			color: #000;
+		}
+	}
 }
 
 .head {
-	&:after {
+	&:before {
 		position: absolute;
-		left: 50%;
-		top: 50%;
 		-webkit-transform: translate(-50%, -50%);
-		-ms-transform: translate(-50%, -50%);
 		transform: translate(-50%, -50%);
 		content: "";
 		display: inline-block;
@@ -223,6 +293,59 @@ body {
 		font: 12px 'arial';
 		color: #000;
 	}
+	&:after {
+		position: absolute;
+		-webkit-transform: translate(-50%, -50%);
+		transform: translate(-50%, -50%);
+		content: "";
+		display: inline-block;
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background-color: #000;
+		font: 12px 'arial';
+		color: #000;
+	}
+	&[data-course="right"] {
+		&:before {
+			left: 75%; 
+			top: 30%;
+		}
+		&:after {
+			left: 75%;
+			top: 70%;
+		}
+	}
+	&[data-course="left"] {
+		&:before {
+			left: 25%;
+			top: 30%;
+		}
+		&:after {
+			left: 25%;
+			top: 70%;
+		}
+	}
+	&[data-course="bottom"] {
+		&:before {
+			top: 75%;
+			left: 30%;
+		}
+		&:after {
+			top: 75%;
+			left: 70%;
+		}
+	}
+	&[data-course="top"] {
+		&:before {
+			top: 25%;
+			left: 30%;
+		}
+		&:after {
+			top: 25%;
+			left: 70%;
+		}
+	}
 }
 
 .form__title {
@@ -231,13 +354,13 @@ body {
 	padding-bottom: 10px;
 }
 
-.form__subtitle {
+.label__header {
 	font: 14px/1.2 arial, helvetica;
 	color: #000;
 	margin-right: 5px;
 }
 
-.game__level {
+.input {
 	margin: 0px;
 	&:hover {
 		cursor: pointer;
@@ -264,7 +387,7 @@ body {
 .btn_right {
 	position: absolute;
 	bottom: 0px;
-	right: 120px;
+	right: 20px;
 	z-index: 1;
 }
 
@@ -303,9 +426,13 @@ input::-moz-focus-outer {
 
 .lostBox__text {
 	font-size: 16px;
+	padding-bottom: 10px;
 }
 
 .lostBox__count {
+	display: inline-block;
+	padding: 2px;
+	border-radius: 7px;
 	font-weight: bold;
 	font-size: 18px;
 }
@@ -435,16 +562,78 @@ input::-moz-focus-outer {
 	padding-bottom: 5px;
 }
 
+.popup {
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	z-index: -1;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-justify-content: center;
+	-ms-flex-pack: center;
+	justify-content: center;
+	-webkit-align-items: center;
+	-ms-flex-align: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+	background-color: #000;
+	color: #fff;
+	font-size: 36px;
+	opacity: 0;
+	&.active {
+		z-index: 2;
+		opacity: 1;
+	}
+}
+
+.score {
+	border: 1px solid #000;
+}
+
+.score__line {
+	font-size: 0px;
+}
+
+.score__cell {
+	display: inline-block;
+	vertical-align: top;
+	font-size: 18px;
+	width: calc(~'50% - 2px');
+	padding: 5px 0px;
+	border: 1px solid #000;
+}
+
+
 
 // ===========================================================
 
 // classList
 // http://stackoverflow.com/questions/5085567/hasclass-with-javascript-or-site-with-jquery-to-javascript-translation
 
+.mt30 {
+	margin-top: 30px;
+}
+
 .mt20 {
 	margin-top: 20px;
 }
 
+.mb30 {
+	margin-bottom: 30px;
+}
+
 .dn {
 	display: none;
+}
+
+[data-id="bg_yellow"] {
+	color: #ff0;
+	background-color: #ccc;
+}
+
+[data-id="bg_green"] {
+	color: #0f0;
+	background-color: #ccc;
 }

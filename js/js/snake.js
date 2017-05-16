@@ -1,556 +1,789 @@
+/**
+ * Snake pure javascript.
+ *
+ * Copyright (c) 2017 Aleksey Semiconductor
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/mit-license.php
+ * @author: Aleksey Semiconductor (https://alekseysemiconductor.github.io/snake_pureJS/)
+ * @version: 1.2.0 - 16/05/2017
+**/
+
 window.onload = function() {
 
-	var wasd = {
-			l: '65',
-			t: '87',
-			r: '68',
-			d: '83'
-		},
+	var body = document.body,
+		script = body.querySelector('.script'),
+		scoreBox = document.querySelector('.js-countItem').innerHTML.trim(),
+		scoreList = document.body.querySelector('.js-countList'),
+		fact = body.querySelectorAll('.js-hiddenFact'),
+		pauseBox = document.querySelector('.js-popup'),
 		arrs = {
 			l: '37',
 			t: '38',
 			r: '39',
-			d: '40'
+			b: '40'
 		},
-		food = 0, // сколько змейка съела фруктов (начальное значение 0) 
-		level, // уровень сложности, если начальный, то за один фрукт дается 1 очко, если средний - 2 очка, а если тяжелый - 4 очка
-		startPosition = [
-		[1, 4], // первый элемент - голова
-		[1, 3],
-		[1, 2],
-		[1, 1]
-	],
-	foodImage = 'bg_food';
-
-	// МАТРИЦА НАЧАЛО ====================================================================================================================================================
-
-	function CreateMatrix(tableId, row, col) {
-		this.tableId = tableId;
-		this.row = row;
-		this.col = col;
-		this.maxCell = this.row * this.col; // максимальное количество ячеек
-		this.cell;
-	}
-
-	CreateMatrix.prototype.createTable = function() {
-		
-		var that = this,
-			table = document.createElement('div'),
-			form = document.body.querySelector('#form');
-
-		table.id = this.tableId,
-		table.className = 'table';
-
-		document.body.insertBefore(table, form.nextElementSibling.nextElementSibling);
-		
-		for ( var i = 1; i <= this.maxCell; i++ ){
-			var item = document.createElement('div');
-			item.className = 'table__cell';
-			table.appendChild(item);
+		wasd = {
+			l: '65',
+			t: '87',
+			r: '68',
+			b: '83'
+		},
+		gameOptions = {
+			pause: '32'
 		}
 
-		// задаем ширину таблицы
-		document.getElementById(that.tableId).style.width = document.getElementById(that.tableId).children[0].offsetWidth * that.col + 'px';
-		that.cell = document.getElementById(that.tableId).children;
-	
-	};
+	// СОЗДАЁМ МАТРИЦУ НАЧАЛО ===================================================================================== //
 
-	CreateMatrix.prototype.addFood = function() {
-		
-		this.foodImage = foodImage;
-		
-		var that = this,
-			randomCell = Math.random()*that.maxCell;
-
-		if ( that.cell[Math.floor(randomCell)].classList == 'table__cell' ) {
-			that.cell[Math.floor(randomCell)].classList.add(that.foodImage);
-		} else {
-			that.addFood(that.foodImage);
-		}
-	};
-
-	// МАТРИЦА КОНЕЦ ====================================================================================================================================================
-	
-
-	// ПРОТОТИП ЖИВОТНОГО НАЧАЛО ====================================================================================================================================================
-
-	function Animal() {
-
-		this.col = matrix1.col;
-		this.row = matrix1.row;
-		this.maxCell = this.row * this.col;
-		this.tableId = matrix1.tableId;
-		this.foodImage = foodImage;
-
-		this.cell = document.getElementById(this.tableId).children;
-
-		this.keys = arrs;
-
-		this.body = startPosition.slice();
-		this.mainRow = this.body[0][0];
-		this.mainCol = this.body[0][1];
-
-		this.bgColor = 'bg_yellow';
-
-		this.setInterval;
-		this.course;
-
-		this.body;
-		this.xLast;
-		this.yLast;
-		this.posLast;
-		this.xNext;
-		this.yNext;
-		this.posNext;
-		this.xLastHead;
-		this.yLastHead;
-		this.posLastHead;
-
+	function CreateTable(options) {
+		this.id = options.id;
+		this.speed = options.speed;
+		this.row = options.row;
+		this.col = options.col;
+		this.maxCell = this.row * this.col; // Количество ячеек в таблице
+		this.foodImage = options.foodImage;
+		this.foodTimer = options.foodTimer; // С какой частотой будет генерироваться еда
+		this.gameOptions = options.gameOptions; // клавишы управления игрой
+		this.snakes = [];
+		this.snakesLength = 0; // Количество змеек на поле
+		this.foodLength = 0; // Количество еды на поле
+		this.pause = false;
+		this.isMaxFood = false; // достигло ли лимита количество фруктов
 		var that = this;
-
-		this.init = function(speed) {
-			this.speed = speed;
-			that.setStartCell();
-		};
-
-		this.setStartCell = function() {
-
-			for (var j=0; j<that.body.length; j++) {
-
-				var x = that.body[j][1]-1,
-					y = (that.body[j][0]-1)*that.col,
-					pos = x+y;
-
-				that.cell[pos].classList.add(that.bgColor);
-			
-			}
-
-			var xHead = that.body[0][1]-1,
-				yHead = (that.body[0][0]-1)*that.col,
-				posHead = xHead+yHead;
-
-			that.cell[posHead].classList.add('head'); // выбираем квадратик с головой и даём ему класс
-		
-		};
-
-		this.setNextCell = function() {
-
-			that.xLast = that.body[that.body.length-1][1]-1; // -1 так как первый элемент массива это ноль; третий элемент покажет 4 квадратик, а мне нужен третий, поэтому минус 1
-			that.yLast = that.body[that.body.length-1][0]-1;
-			that.posLast = that.xLast + that.yLast*that.col;
-
-			that.body.unshift([that.mainRow, that.mainCol]); // добавляем новый квадратик в начало массива - это голова, причем сделать это нужно до объявления переменной posNext
-
-			that.xNext = that.body[0][1]-1;
-			that.yNext = that.body[0][0]-1;
-			that.posNext = that.xNext + that.yNext*that.col;
-
-			that.xLastHead = that.body[1][1]-1;
-			that.yLastHead = (that.body[1][0]-1)*that.col;
-			that.posLastHead = that.xLastHead+that.yLastHead;
-
-			if ( that.cell[that.posNext].classList.contains(that.foodImage) ) { // съедаем фрукт
-
-				if ( level === "easy" ) {
-					food++;
-				} else if ( level === "intermediate" ) {
-					food = food + 2;
-				} else if ( level === "difficult" ) {
-					food = food + 4;
-				}
-
-				var fact = document.body.getElementsByClassName('js-hiddenFact');
-
-				if ( food >= 70 ) {
-					fact[6].classList.remove('dn');
-				} else if ( food >= 60 ) {
-					fact[5].classList.remove('dn');
-				} else if ( food >= 50 ) {
-					fact[4].classList.remove('dn');
-				} else if ( food >= 40 ) {
-					fact[3].classList.remove('dn');
-				} else if ( food >= 30 ) {
-					fact[2].classList.remove('dn');
-				} else if ( food >= 20 ) {
-					fact[1].classList.remove('dn');
-				} else if ( food >= 10 ) {
-					fact[0].classList.remove('dn');
-				}
-				
-
-				that.cell[that.posNext].classList.remove(that.foodImage); 
-				that.cell[that.posNext].classList.add(that.bgColor);
-				that.cell[that.posNext].classList.add('head'); // Добавляем новому квадратику класс "Голова"
-				that.cell[that.posLastHead].classList.remove('head'); // удаляем предыдущую голову
-
-
-				var scorebox = document.getElementsByClassName('js-scoreCount__box')[0];
-
-				if ( scorebox.classList.contains('dn') ) {
-					scorebox.classList.remove('dn');
-				}
-
-				scorebox.querySelector('.js-scoreCount__count').innerHTML = food;
-
-				// В случае победы:
-				if (that.body.length == 100) {
-					alert('Поздравляем! Вы выиграли!');
-				}
-
-				matrix1.addFood();
-				return;
-			}
-			
-			that.cell[that.posLast].classList.remove(that.bgColor); // убираем заливку с вырезанного(последнего) из массива квадратика
-			that.body.pop(); // удаляем последний элемент из начала массива, это хвост
-
-			if ( that.cell[that.posNext].classList.contains(that.bgColor) ) { // В случае поражения
-
-				that.clear();
-				document.getElementById(that.tableId).classList.add('dn');
-				document.querySelector('.js-showBox').classList.add('dn');
-				document.querySelector('.js-scoreCount__box').classList.add('dn');
-				document.getElementsByClassName('js-record')[0].innerHTML = food;
-				document.getElementsByClassName('js-score')[0].value = food;
-				document.getElementsByClassName('js-sendBox')[0].classList.remove('dn');
-
-				return;
-			}
-			
-			that.cell[that.posNext].classList.add(that.bgColor); // заливаем новый квадратик
-			that.cell[that.posNext].classList.add('head'); // Добавляем новому квадратику класс "Голова"
-			that.cell[that.posLastHead].classList.remove('head'); // удаляем предыдущую голову
-
-		};
-
-		this.reStart = function() {
-			that.body = startPosition.slice();
-			that.mainRow = that.body[0][0];
-			that.mainCol = that.body[0][1];
-		};
-
-		this.clear = function() {
-
-			clearInterval( that.setInterval );
-
-			// лучше пройтись по всем, так как кроме класса цвета клеточки будет и класс головы змейки, и класс еды
-			for ( var i=0; i<that.cell.length; i++ ) {
-				that.cell[i].className = '';
-				that.cell[i].className = 'table__cell';
-			}
-
-			this.reStart();
-
-		};
-
-		this.moveLeft = function() {
-			if (that.course == 'right') {
-				clearInterval(that.setInterval);
-				that.setInterval = setInterval(that.moveRight, that.speed);
-				return;
-			}
-			that.course = 'left';
-			for (var i = 0; i < that.maxCell; i++) {
-				if (that.cell[i].classList.contains(that.bgColor)) {
-					that.mainCol--;
-					if (that.mainCol < 1) {
-						that.mainCol = that.col;
-						that.setNextCell();
-						return;
-					}
-					that.setNextCell();
-					return;
-				}
-			}
-		};
-
-		this.moveTop = function() {
-			if (that.course == 'down') {
-				clearInterval(that.setInterval);
-				that.setInterval = setInterval(that.moveDown, that.speed);
-				return;
-			}
-			that.course = 'top';
-			for (var i = 0; i < that.maxCell; i++) {
-				if (that.cell[i].classList.contains(that.bgColor)) {
-					that.mainRow--;
-					if (that.mainRow < 1) {
-						that.mainRow = that.row;
-						that.setNextCell();
-						return;
-					}
-					that.setNextCell();
-					return;
-				}
-			}
-		};
-
-		this.moveRight = function() {
-			if (that.course == 'left') {
-				clearInterval(that.setInterval);
-				that.setInterval = setInterval(that.moveLeft, that.speed);
-				return;
-			}
-			that.course = 'right';
-			for (var i = 0; i < that.maxCell; i++) {
-				if (that.cell[i].classList.contains(that.bgColor)) {
-					that.mainCol++;
-					if (that.mainCol > that.col) {
-						that.mainCol = 1;
-						that.setNextCell();
-						return;
-					}
-					that.setNextCell();
-					return;
-				}
-			}
-		};
-
-		this.moveDown = function() {
-			if (that.course == 'top') {
-				clearInterval(that.setInterval);
-				that.setInterval = setInterval(that.moveTop, that.speed);
-				return;
-			}
-			that.course = 'down';
-			for (var i = 0; i < that.maxCell; i++) {
-				if (that.cell[i].classList.contains(that.bgColor)) {
-					that.mainRow++;
-					if (that.mainRow > that.row) {
-						that.mainRow = 1;
-						that.setNextCell();
-						return;
-					}
-					that.setNextCell();
-					return;
-				}
-			}
-		};
 
 		document.addEventListener('keydown', function(e) {
 
-			clearInterval(that.setInterval);
-			if ( e.keyCode == that.keys.l ){
-				if (that.course == undefined) {
-					return; // Если змейка стоит, игра ещё не началась, нельзя двигать влево
-				}
-				that.setInterval = setInterval(that.moveLeft, that.speed);
-			} else if ( e.keyCode == that.keys.t ){
-				that.setInterval = setInterval(that.moveTop, that.speed);
-			} else if ( e.keyCode == that.keys.r ){
-				that.setInterval = setInterval(that.moveRight, that.speed);
-			} else if ( e.keyCode == that.keys.d ){
-				that.setInterval = setInterval(that.moveDown, that.speed);
+			if (e.keyCode == that.gameOptions.pause) {
+				that.handlePause();
 			}
+
+		});
+	}
+
+	CreateTable.prototype.init = function() {
+		
+		this.table = document.createElement('div'), // Создаём таблицу
+		this.table.id = this.id, // Даём таблице id из параметров
+		this.table.className = 'table'; // Даём таблице класс table, чтобы стилизовать её
+
+		body.insertBefore(this.table, script); // Вставляем таблицу перед скриптами
+
+		var cells = '', // Это строка, в которую будем вписывать ячейки
+			cell = document.querySelector('.js-cell').innerHTML.trim();
+			// trim() - Чтобы убрать пробелы побокам
+		
+		// Запускаем цикл, в котором будем вставлять ячейки в строку
+		for ( var i = 1; i <= this.maxCell; i++ ) {
+			cells += cell; 
+		}
+
+		this.table.innerHTML = cells; // Вставляем строку из ячеек в таблицу
+		// Задаем таблице ширину:
+		this.table.style.width = this.table.children[0].offsetWidth * this.col + 'px';
+
+	};
+
+	CreateTable.prototype.addFood = function() {
+
+		var that = this;
+
+		this.foodInterval = setInterval(function() { 
+
+			// Округляем до целого по нижнему значению случайное число от 0 до количества ячеек в таблице
+			// Затем находим номер ячейки с этим рандомным числом и смотрим список её классов
+			var randomNumber = Math.floor(Math.random() * that.maxCell),
+				cellClassList = that.table.children[randomNumber].classList;
+
+			// Мы не знаем какой класс будет у какой змейки или какой класс будет 
+			// у какого-либо фрукта, поэтому, если в этой рандомной ячейке будет 
+			// хоть какой-то класс, кроме класса самой ячейки,
+			// то пропускаем эту ячейку и ищем следующую
+
+			if (cellClassList.length == 1) { // Смотрим на количество классов
+				// Если на поле больше или равно 10 единиц еды, то ничего не делаем
+				if (that.foodLength == 10) {
+					that.isMaxFood = true;
+					clearInterval(that.foodInterval); // Останавливаем генерацию фруктов
+					return;
+				}
+				cellClassList.add(that.foodImage);
+				that.foodLength++;
+			}
+			
+
+		}, this.foodTimer);
+		
+	};
+
+	CreateTable.prototype.handlePause = function() {
+
+		// Если пауза уже нажата
+		if (this.pause) {
+			pauseBox.classList.remove('active');
+			this.addFood(); // Запускаем генерацию фруктов
+			this.pause = false;
+			return;
+		}
+
+		pauseBox.classList.add('active');
+
+		clearInterval(this.foodInterval); // Останавливаем генерацию фруктов
+		// Останавливаем движение всех змеек
+		for (var i = 0, len = this.snakes.length; i < len; i++) {
+			clearTimeout(this.snakes[i].timer);
+			this.snakes[i].stop = true;
+		}
+
+		this.pause = true;
+
+	};
+
+	// СОЗДАЁМ МАТРИЦУ КОНЕЦ ================================================================================== //
+	
+
+	// ПРОТОТИП ЗМЕЙКИ НАЧАЛО ====================================================================================================================================================
+
+	function CreateSnake(options) {
+
+		this.table = options.table;
+		this.color = options.color;
+		// Нам нужен новый массив, а не ссылка на старый, поэтому slice()
+		this.body = options.startPosition.slice();
+		this.controls = options.controls;
+
+		this.cell = document.getElementById(this.table.id).children;
+		this.setCourse(); // Выбираем направление змейки
+		this.stop = true;
+		this.alive = true; // Потом будем проверять, если змейки нету
+
+		this.createScoreBox(); // создает таблицу, в которую будут вписываться очки
+		
+		var that = this;
+
+		document.addEventListener('keydown', function(e) {
+
+			if (e.keyCode == that.controls.l) {
+				if (!that.alive || that.course == "left" && that.stop == false) return;
+				clearTimeout(that.timer);
+				that.moveLeft();
+			} else if (e.keyCode == that.controls.t) {
+				if (!that.alive || that.course == "top" && that.stop == false) return;
+				clearTimeout(that.timer);
+				that.moveTop();
+			} else if (e.keyCode == that.controls.r) {
+				if (!that.alive || that.course == "right" && that.stop == false) return;
+				clearTimeout(that.timer);
+				that.moveRight();
+			} else if (e.keyCode == that.controls.b) {
+				if (!that.alive || that.course == "bottom" && that.stop == false) return;
+				clearTimeout(that.timer);
+				that.moveBottom();
+			}
+
 		});
 
 	};
 
-	// ПРОТОТИП ЖИВОТНОГО КОНЕЦ ====================================================================================================================================================
+	CreateSnake.prototype.init = function() {
 
-	function CreateSnake(speed) {
-		Animal.call(this); // отнаследуем свойства и функции из объекта Animal
-		this.speed = speed;
+		for (var i = 0; i < this.body.length; i++) {
+
+			this.cell[(this.body[i].x - 1) * this.table.col + this.body[i].y - 1]
+				.classList.add(this.color);
+		
+		}
+
+		this.addNewHead();
+
+		this.table.snakesLength++;
+
+		this.table.snakes.push(this);
+	
 	};
 
-	var matrix1 = new CreateMatrix('table1', 20, 20);
-	matrix1.createTable();
+	CreateSnake.prototype.createScoreBox = function() {
+		
+		// добавим box с очками в общий список box'ов c другими змейками
+		scoreList.innerHTML += scoreBox;
 
-	var audio = new Audio('audio/Aleksey Semiconductor - Цыганочка.mp3');
+		this.count = scoreList
+						.querySelectorAll('.js-scoreCount__item')
+							[document.body.querySelectorAll('.js-scoreCount__item').length - 1]
+						.querySelector('.js-scoreCount__count');
+
+		// каждому box с очками добавим data-id равное его this.color,
+		// чтобы его потом можно было найти и поменять значение
+		this.count.setAttribute('data-id', this.color);
+
+	};
+
+	CreateSnake.prototype.setCourse = function() {
+
+		// Выясняем в каком направлении движемся:
+		if ( this.body[0].x == this.body[1].x ) {
+			// Если x одинаковые, то значит движемся в горизонтальном направлении -
+			// влево или вправо
+
+			if (this.body[0].y < this.body[1].y) {
+				return this.course = 'left';
+			} else if (this.body[0].y > this.body[1].y) {
+				return this.course = 'right';
+			}
+
+		} else if ( this.body[0].y == this.body[1].y ) {
+			// Если у одинаковые, то значит движемся в вертикальном направлении -
+			// вверх или вниз
+
+			if (this.body[0].x < this.body[1].x) {
+				return this.course = 'top';
+			} else if (this.body[0].x > this.body[1].x) {
+				return this.course = 'bottom';
+			}
+
+		}
+
+	};
+
+	CreateSnake.prototype.addNewHead = function() {
+
+		this.newHead = (this.body[0].x - 1) * this.table.col + (this.body[0].y - 1);
+		this.newHeadClasslist = this.cell[this.newHead].classList;
+
+		// Выбираем квадратик с головой и даём ему класс:
+		this.newHeadClasslist.add('head');
+		this.cell[this.newHead].setAttribute('data-course', this.course); 
+
+	}
+
+	CreateSnake.prototype.moveLeft = function() {
+
+		var that = this;
+
+		if (this.course == 'top' || this.course == 'bottom') {
+			this.course = 'left';
+		} else if (this.course == 'right') {
+			this.rotateBack();
+			return;
+		}
+				
+		// Добавляем новый квадратик в начало массива - это голова
+		this.body.unshift({
+			x: this.body[0].x,
+			y: this.body[0].y - 1
+		});
+
+		if (this.body[0].y < 1) {
+			this.body[0].y = this.table.col;
+			this.setNextCell();
+
+			if (!this.alive) return;
+
+			this.timer = setTimeout(function() {
+				that.moveLeft(); 
+			}, this.table.speed);
+			
+			return;
+		}
+
+		this.setNextCell();
+		if (!this.alive) return;
+
+		this.timer = setTimeout(function() {
+			that.moveLeft();
+		}, this.table.speed);
+
+	};
+
+	CreateSnake.prototype.moveTop = function() {
+
+		var that = this;
+
+		if (this.course == 'left' || this.course == 'right') {
+			this.course = 'top';
+		} else if (this.course == 'bottom') {
+			this.rotateBack();
+			return;
+		}
+				
+		// Добавляем новый квадратик в начало массива - это голова
+		this.body.unshift({
+			x: this.body[0].x - 1,
+			y: this.body[0].y
+		});
+
+		if (this.body[0].x < 1) { 
+			this.body[0].x = this.table.row;
+			this.setNextCell();
+
+			if (!this.alive) return;
+
+			this.timer = setTimeout(function() {
+				that.moveTop();
+			}, this.table.speed);
+
+			return;
+		}
+
+		this.setNextCell();
+		if (!this.alive) return;
+
+		this.timer = setTimeout(function() {
+			that.moveTop();
+		}, this.table.speed);
+
+	};
+
+	CreateSnake.prototype.moveRight = function() {
+
+		var that = this;
+
+		if (this.course == 'top' || this.course == 'bottom') {
+			this.course = 'right';
+		} else if (this.course == 'left') {	
+			this.rotateBack();
+			return;
+		}
+
+		// Добавляем новый квадратик в начало массива - это голова
+		this.body.unshift({
+			x: this.body[0].x,
+			y: this.body[0].y + 1
+		});
+
+		if (this.body[0].y > this.table.col) {
+			this.body[0].y = 1;
+			this.setNextCell();
+
+			if (!this.alive) return;
+
+			this.timer = setTimeout(function() {
+				that.moveRight();
+			}, this.table.speed);
+
+			return;
+		}
+
+		this.setNextCell();
+		if (!this.alive) return;
+
+		this.timer = setTimeout(function() {
+			that.moveRight();
+		}, this.table.speed);
+
+	};
+
+	CreateSnake.prototype.moveBottom = function() {
+
+		var that = this;
+
+		if (this.course == 'left' || this.course == 'right') {
+			this.course = 'bottom';
+		} else if (this.course == 'top') {
+			this.rotateBack();
+			return;
+		}
+				
+		// Добавляем новый квадратик в начало массива - это голова
+		this.body.unshift({
+			x: this.body[0].x + 1,
+			y: this.body[0].y
+		});
+
+		if (this.body[0].x > this.table.row) {
+			this.body[0].x = 1;
+			this.setNextCell();
+
+			if (!this.alive) return;
+
+			this.timer = setTimeout(function() {
+				that.moveBottom();
+			}, this.table.speed); 
+			
+			return;
+		}
+
+		this.setNextCell();
+
+		if (!this.alive) return;
+
+		this.timer = setTimeout(function() { 
+			that.moveBottom();
+		}, this.table.speed);
+
+	};
+
+	CreateSnake.prototype.setNextCell = function() {
+
+		var that = this;
+
+		this.stop = false;
+		this.addNewHead();
+
+		if (this.newHeadClasslist.contains(this.color)) {
+			// В случае поражения, если наткнулся на свой хвост
+
+			this.die();
+			
+			// Находим длину массива из всех рекордов из таблицы,
+			// чтобы понять одиночная игра или нет
+			var scoreLength = document.body.querySelectorAll('.js-scoreCount__item').length;
+
+			if (scoreLength == 1) {
+				document.querySelector('.table').classList.add('dn');
+				document.querySelector('.js-tableRecord').classList.remove('dn');
+			} else {
+				if (this.table.snakesLength) return;
+				document.querySelector('.table').classList.add('dn');
+				document.querySelector('.js-multiPlayer').classList.remove('dn');
+			}
+
+			document.querySelector('.js-sendBox').classList.remove('dn');
+
+			return;
+		} 
+
+		this.lastHead = (this.body[1].x - 1) * this.table.col + (this.body[1].y - 1);
+		this.lastHeadClasslist = this.cell[this.lastHead].classList;
+
+		if (this.newHeadClasslist.contains(this.table.foodImage)) { // Съедаем фрукт
+
+			this.table.foodLength--; // уменьшаем количество еды на поле
+
+			// Запускаем генерацию фруктов, если их меньше 10
+			if (this.table.isMaxFood) {
+				this.table.isMaxFood = false;
+				this.table.addFood();
+			}
+
+			this.newHeadClasslist.remove(this.table.foodImage);
+			this.newHeadClasslist.add(this.color);
+			this.lastHeadClasslist.remove('head'); // Удаляем предыдущую голову
+
+			// Проверяем, если счетчик ещё не существует, тогда он равен 0,
+			// а если он уже есть, то пропускаем эту строку
+			if (!(this.food > 0)) this.food = 0;
+
+			if ( this.table.level === "easy" ) {
+				this.food++;
+			} else if ( this.table.level === "intermediate" ) {
+				this.food = this.food + 2;
+			} else if ( this.table.level === "difficult" ) {
+				this.food = this.food + 4;
+			}
+
+			if (this.food >= 70) {
+				if (fact[6].classList.contains('dn')) {
+					fact[6].classList.remove('dn');
+				}
+			} else if (this.food >= 60) {
+				if (fact[5].classList.contains('dn')) {
+					fact[5].classList.remove('dn');
+				}
+			} else if (this.food >= 50) {
+				if (fact[4].classList.contains('dn')) {
+					fact[4].classList.remove('dn');
+				}
+			} else if (this.food >= 40) {
+				if (fact[3].classList.contains('dn')) {
+					fact[3].classList.remove('dn');
+				}
+			} else if (this.food >= 30) {
+				if (fact[2].classList.contains('dn')) {
+					fact[2].classList.remove('dn');
+				}
+			} else if (this.food >= 20) {
+				if (fact[1].classList.contains('dn')) {
+					fact[1].classList.remove('dn');
+				}
+			} else if (this.food >= 10) {
+				if (fact[0].classList.contains('dn')) {
+					fact[0].classList.remove('dn');
+				}
+			}
+
+			document
+				.querySelector('.js-scoreCount__count[data-id='+this.color+']')
+				.innerHTML = this.food;
+
+			return;
+		}
+
+		// Удаляем хвост - ищем последний элемент массива;
+		// -1 так как первый элемент массива это ноль;
+		// третий элемент покажет 4 квадратик, а мне нужен третий, поэтому минус 1
+		this.xLast = (this.body[this.body.length - 1].x - 1) * this.table.col;
+		this.yLast = this.body[this.body.length - 1].y - 1;
+		this.posLast = this.xLast + this.yLast;
+		
+		// Убираем заливку с вырезанного(последнего) из массива квадратика
+		this.cell[this.posLast].classList.remove(this.color);
+		this.body.pop(); // Удаляем последний элемент из начала массива, это хвост
+		
+		// Заливаем новый квадратик и добавляем новому квадратику класс "Голова"
+		this.newHeadClasslist.add(this.color, 'head');
+		this.lastHeadClasslist.remove('head'); // Удаляем предыдущую голову
+
+	};
+
+	CreateSnake.prototype.rotateBack = function() {
+
+		this.stop = true;
+
+		this.newHeadClasslist.remove('head'); // Находим голову и удаляем её
+
+		// Меняем элементы массива в обратном порядке, то есть поворачиваем змейку назад
+		for (var i = 0; i < this.body.length; i++) {
+			this.body.splice(i, 0, this.body.pop());
+		}
+		
+		this.setCourse();
+		this.addNewHead();
+		
+	}
+
+	CreateSnake.prototype.die = function() {
+
+		this.alive = false;
+		clearTimeout(this.timer); // очищаем таймер
+
+		for (var i = 0; i < this.body.length; i++) {
+
+			this.cell[(this.body[i].x - 1) * this.table.col + this.body[i].y - 1]
+				.classList.remove(this.color, 'head');
+
+		}
+
+		this.table.snakesLength--;
+
+		// for (var property in this) {
+		// 	if (this.hasOwnProperty(property)) delete this[property];
+		// }
+
+	};
+
+
+	// ПРОТОТИП ЗМЕЙКИ КОНЕЦ ====================================================================================================================================================
+
+
+	var tableOptions = {
+		id: 'table', 
+		row: 20,
+		col: 20,
+		gameOptions: gameOptions,
+		foodImage: 'bg_food',
+		foodTimer: 1000 // с какой скоростью будет генерироваться еда
+	};
+
+	var table = new CreateTable(tableOptions);
+	table.init();
 	
-	document.getElementsByClassName('js-init')[0].addEventListener( "click", function() {
+
+	// Для начала просто загружаем аудио, но не проигрываем его
+	var audio = new Audio('audio/Aleksey Semiconductor - Цыганочка.ogg');
+	
+	document.querySelector('.js-init').addEventListener("click", function() {
 
 		document.querySelector('.form').classList.add('dn');
 		document.querySelector('.js-showBox').classList.remove('dn');
 
-		if ( document.getElementsByClassName('bg_food').length > 0 ) {
-			// console.log('Еда уже есть');
-			return;
+		var input = document.querySelector('.js-level:checked'),
+			speed = input.value * 1, // Скорость движения всех змеек на данной карте
+			level = input.id; // Уровень сложности, если начальный, то за один фрукт
+							  // дается 1 очко,  если средний - 2 очка, а если тяжелый - 4 очка
+
+		var players = document.querySelector('.js-players:checked'),
+			playerCount = players.value * 1; // количество игроков
+
+		table.speed = speed;
+		table.level = level;
+
+		var snakeOptions1 = {
+			table: table, // Таблица, внутри которой будет двигаться змейка
+			color: 'bg_yellow', // Класс, который будем добавлять ячейке,
+								// чтобы она закрасилась в цвет змейки
+			startPosition: [ // позиция змейки, первый элемент - голова
+				{
+					x: 1,
+					y: 4
+				},
+				{
+					x: 1,
+					y: 3
+				},
+				{
+					x: 1,
+					y: 2
+				},
+				{
+					x: 1,
+					y: 1
+				}
+			],
+			controls: arrs
+		};
+
+		var snake1 = new CreateSnake(snakeOptions1);
+		snake1.init();
+
+		if (playerCount == 2) {
+
+			var snakeOptions2 = {
+				table: table, // Таблица, внутри которой будет двигаться змейка
+				color: 'bg_green', // Класс, который будем добавлять ячейке,
+									// чтобы она закрасилась в цвет змейки
+				startPosition: [ // позиция змейки, первый элемент - голова
+					{
+						x: 20,
+						y: 17
+					},
+					{
+						x: 20,
+						y: 18
+					},
+					{
+						x: 20,
+						y: 19
+					},
+					{
+						x: 20,
+						y: 20
+					}
+				],
+				controls: wasd
+			};
+
+			var snake2 = new CreateSnake(snakeOptions2);
+			snake2.init();
+
 		}
-
-		var speed = document.querySelector('.game__level:checked').value;
-		level = document.querySelector('.game__level:checked').id;
-
-		if (snake) {
-			// console.log(snake);
-		} else {
-			// console.log(snake);
-		}
-
-		var snake = new CreateSnake(speed);
-
-		snake.reStart();
-		snake.init(speed);
-		matrix1.addFood();
 
 		window.setTimeout(function () {
-			document.getElementById('table1').focus(); // иначе фокус не будет работать
+			document.getElementById('table').focus(); // Иначе фокус не будет работать
 		}, 0);
 
 		audio.play();
 
+		table.addFood();
+
 	});
 
-	var toggleSoundBtn = document.querySelector('.js-toggleSound');
+	document.querySelector('.js-toggleSound')
+		.addEventListener("click", function() {
 
-	toggleSoundBtn.addEventListener( "click", function() {
-
-		function toggleSound() {
-
-			if ( audio.paused && audio.currentTime > 0 && !audio.ended ) {
-				toggleSoundBtn.innerHTML = "Выключить звук";
-				audio.play();
-			} else {
-				toggleSoundBtn.innerHTML = "Включить звук";
-				audio.pause();
-			}
-
+		if ( audio.paused && audio.currentTime > 0 && !audio.ended ) {
+			this.innerHTML = "Выключить звук";
+			audio.play();
+		} else {
+			this.innerHTML = "Включить звук";
+			audio.pause();
 		}
 
-		toggleSound();
-
 	});
 
-	document.getElementsByClassName('js-lostBox__send')[0].addEventListener( "click", function() {
+	document.querySelector('.js-lostBox__send')
+		.addEventListener("click", function() {
 
-		var xmlhttp = new XMLHttpRequest();
+		var scoreLS = JSON.parse(localStorage.getItem('score')) || []; // берем рекорды из localStorage
 
-		var name = document.getElementsByClassName('js-nickName')[0].value;
-		var score = document.getElementsByClassName('js-score')[0].value;
+		var name = document.querySelector('.js-nickName').value,
+			count = document.querySelector('.js-scoreCount__count').innerHTML * 1,
+			score = {
+				name: name,
+				count: count
+			};
 
-		var params = 'name=' + encodeURIComponent(name) + '&score=' + encodeURIComponent(score);
-
-		xmlhttp.open("POST", "/add.php", true);
-
-		xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-		// xmlhttp.onreadystatechange = function() {
-
-		// 	if (xmlhttp.readyState == XMLHttpRequest.DONE ) {
-		// 		if (xmlhttp.status == 200) {
-		// 			// document.getElementById("myDiv").innerHTML = xmlhttp.responseText;
-		// 		}
-		// 		else if (xmlhttp.status == 400) {
-		// 			alert('There was an error 400');
-		// 		}
-		// 		else {
-		// 			alert('something else other than 200 was returned');
-		// 		}
-		// 	}
-		// };
+		scoreLS.push(score);
 		
-		xmlhttp.send(params);
+		localStorage.setItem('score', JSON.stringify(scoreLS)); // отправляем его в localStorage
 
-		document.getElementsByClassName('js-lostBox__send')[0].classList.add('dn');
-		document.getElementsByClassName('js-nickName')[0].classList.add('dn');
-		document.getElementsByClassName('js-results__btn')[0].classList.remove('dn');
-		document.getElementsByClassName('js-results__reload')[0].classList.remove('dn');
+		document.querySelector('.js-tableRecord').classList.add('dn');
+		document.querySelector('.js-singlePlayer').classList.remove('dn');
 		
 	});
 
- 
-
-	document.getElementsByClassName('js-results__btn')[0].addEventListener( "click", function() {
-		
-		var xmlhttp = new XMLHttpRequest();
-
-		xmlhttp.open("GET", "/get.php", true);
-
-		// xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-		xmlhttp.send();
-
-		xmlhttp.onreadystatechange = function() {
-
-			if (xmlhttp.readyState == XMLHttpRequest.DONE ) {
-
-				if (xmlhttp.status == 200) {
-
-					// console.log(xmlhttp.responseText);
-
-					// var results = '[' + xmlhttp.responseText + ']' ;
-
-
-					var results = xmlhttp.responseText,
-						arrResult = results.split('-'),
-						score = [];
-
-					for (var i = 0; i < arrResult.length; i++) {
-
-						// сначала находим индекс последнего пробела, потому что после него идет цифра рекорд, 
-						// а последнего, потому что имя может содержать пробелы, 
-						// затем вырезаем с этого индекса всё что идёт далее, это и есть число
-
-						var number = arrResult[i].slice(arrResult[i].lastIndexOf(' ')),
-							user = arrResult[i].slice(0, arrResult[i].lastIndexOf(' '));
-
-						number = +number;
-
-						score.push([[user, number]]);
-
-					}
-
-					score.pop(); // почему-то последний элемент массива всегда пустой, его удаляем
-
-					// function compareNumeric(a, b) {
-
-					function sortFunction(a, b) {
-						if (a[0][1] === b[0][1]) {
-							return 0;
-						}
-						else {
-							return (a[0][1] < b[0][1]) ? 1 : -1;
-						}
-					}
-
-					score.sort(sortFunction);
-
-					var tableResults = document.querySelector('.js-results__table');
-
-					for ( var j=0; j<score.length; j++ ) {
-
-						if ( j == 20) break;
-
-						var text = score[j][0];
-						var number = score[j][1];
-
-						var line = document.createElement('div'); // создаем див
-						line.className = 'results__line'; // добавляем ему класс .results__line
-						tableResults.appendChild(line); // запихиваем этот див внутрь таблицы с рекордами
-
-						line.innerHTML = // в каждой линии будет по три столбца:
-										'<div class="results__count"></div>'+ // 1-ый столбец - номер игрока в списке
-										'<div class="results__nickName"></div>'+ // 2-ой столбец - имя игрока
-										'<div class="results__score"></div>'; // 3-ий столбей - его рекорд
-
-						line.querySelector('.results__count').innerHTML = j+1;
-						line.querySelector('.results__nickName').innerHTML = score[j][0][0];
-						line.querySelector('.results__score').innerHTML = score[j][0][1];
-
-					}
-					
-					// document.getElementsByClassName('js-results__table')[0].innerHTML = xmlhttp.responseText;
-					document.getElementsByClassName('lostBox__wrap')[0].classList.add('dn');
-					document.getElementsByClassName('js-results__table')[0].classList.remove('dn');
-					document.getElementsByClassName('js-results__btn')[0].classList.add('dn');
-					document.getElementById('form').classList.add('dn');
-				
-				}
-				else if (xmlhttp.status == 400) {
-					alert('There was an error 400');
-				}
-				else {
-					// alert('something else other than 200 was returned');
-					alert('github pages не поддерживает динамичный контент. Я сделал динамичную таблицу рекордов, но для того, чтобы её увидеть необходима поддержка .php-файлов.');
-				}
-			}
-			
-		};
-
-	});
-
-	document.getElementsByClassName('js-results__reload')[0].addEventListener( "click", function() {
-		location.reload();
-	});
+	var resultBtn = document.querySelectorAll('.js-results__btn');
 	
+	for (var i = 0; i < resultBtn.length; i++) {
+
+		resultBtn[i].addEventListener("click", function() {
+
+			// Шаблон строки рекордов
+			var record = document.querySelector('.js-record').innerHTML.trim(),
+				records = "",
+				// Куда мы будем вставлять строки
+				table = document.querySelector('.js-table'),
+				// Берём рекорды из localStorage
+				score = JSON.parse(localStorage.getItem('score')),
+				len;
+
+			// Сортируем числа в порядке убывания
+			function sortFunction(a, b) {
+				if (a.count >= b.count) return -1;
+				if (a.count < b.count) return 1;
+			}
+
+			score.sort(sortFunction);
+
+			// Если рекордов > 10, то показывать только первые 10,
+			// иначе будет слишком большая таблица
+			if (score.length >= 10) {
+				len = 10;
+			} else {
+				len = score.length;
+			}
+
+			score = score.slice(0, len); // Возьмём только первые 10 значений из рекордов
+			
+			for ( var i = 0; i < len; i++ ) {
+				records += record; 
+			}
+
+			table.innerHTML = records; // Отрисовываем пустые строки
+
+			// Тепер в эти пустые строки вставляем данные из localeStorage
+			for (var i = 0, box; i < len; i++) {
+
+				box = table.querySelectorAll('.js-table__item')[i];
+				
+				box.querySelector('[data-id="name"]').innerHTML = score[i].name;
+				box.querySelector('[data-id="count"]').innerHTML = score[i].count;
+			}
+
+			// чтобы в localeStorage не было лишних данных, записываем туда
+			// только самые большие рекорды и отправляем их в localStorage
+			localStorage.setItem('score', JSON.stringify(score));
+
+			this.classList.add('dn');
+			table.classList.remove('dn');
+
+			var clearLS = document.querySelector('.js-clearLS');
+
+			clearLS.classList.remove('dn');
+
+			clearLS.addEventListener("click", function() {
+				localStorage.clear();
+				
+				for (var i = 0, box; i < len; i++) {
+
+					box = table.querySelectorAll('.js-table__item')[i];
+					
+					box.querySelector('[data-id="name"]').innerHTML = "";
+					box.querySelector('[data-id="count"]').innerHTML = "";
+				}
+
+			});
+			
+		});
+
+	}
+
+	var reloadBtn = document.querySelectorAll('.js-reload');
+
+	for (var i = 0, len = reloadBtn.length; i < len; i++) {
+
+		reloadBtn[i].addEventListener("click", function() {
+			location.reload();
+		});
+
+	}
+
 };
